@@ -59,6 +59,7 @@ nflSmallSumStats
 playTypeCounts <- rxCrossTabs( ~ POS_TEAM:DEF_TEAM:PLAY_TYPE, nflSmallXdf)
 playTypeCounts
 
+rxCube(~ POS_TEAM:DEF_TEAM:PLAY_TYPE, nflSmallXdf)
 # Create a histogram showning play tendencies (Pass/Run) by team
 rxHistogram(~POS_TEAM | PLAY_TYPE, histType = "Percent", nflSmallXdf, scales = list(x = list(rot = 90)))
 
@@ -80,13 +81,16 @@ reg_form <- PLAY_TYPE ~ GAME_DATE + GAME_ID + PLAY_ID + DRIVE + QTR + DOWN + TIM
 
 play_type_classification <- rxGlm(formula = reg_form, data = nflTrainXdf, family = binomial())
 
-nflPlayPredGlmXdf <- rxPredict(play_type_classification, data = nflTrainXdf, outData  = nflPlayPredGlmXdf, writeModelVars = TRUE, extraVarsToWrite = "Label", overwrite = TRUE)
+nflPlayPredGlmXdf <- file.path(outputDir, "nflPlayTypePredGlm.xdf")
+nflPlayPredGlmXdf <- rxPredict(play_type_classification, data = nflTestXdf, outData = nflPlayPredGlmXdf, writeModelVars = TRUE, extraVarsToWrite = "Label", overwrite = TRUE)
 rxGetInfo(nflPlayPredGlmXdf, getVarInfo = TRUE)
 head(nflPlayPredGlmXdf)
 
 # Logistic Regression 
 play_type_rxlogit <- rxLogit(formula = reg_form, data = nflTrainXdf)
-nflPlayPredLogitXdf <- rxPredict(play_type_rxlogit, data = nflTestXdf, outData = nflPlayPredLogitXdf, writeModelVars = TRUE, extraVarsToWrite = "Label", overwrite = TRUE)
+
+nflPlayPredLogitXdf <- file.path(outputDir, "nflPlayPredLogit.xdf")
+nflPlayPredLogitXdf <- rxPredict(play_type_rxlogit, data = nflTestXdf, outData = nflPlayPredLogitXdf, writeModelVars = TRUE, extraVarsToWrite = c("PLAY_TYPE","Probability"), overwrite = TRUE)
 rxGetInfo(nflPlayPredLogitXdf, getVarInfo = TRUE)
 head(nflPlayPredLogitXdf)
 
